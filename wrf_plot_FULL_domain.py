@@ -23,7 +23,6 @@ def landmarks():
                     '3':(-64.1131,-32.1767),
                     '4':(-64.34992,-33.13067), 
                     'Y':(-64.7545,-32.1062),
-                    'S':(-63.978435,-31.715689),
                     'SR':(-68.285522,-34.587997),
                     'SL':(-66.33694,-33.30278)}
     return landmark_dict
@@ -37,7 +36,6 @@ landmark_dict=landmarks()
 run=sys.argv[1]
 tindex=int(sys.argv[2])
 zoom=sys.argv[3]
-
 
 ############################tCONFIGURATION PARAMETERS###############################
 
@@ -66,8 +64,7 @@ for file in filenames:
         times.append(pd.to_datetime(os.path.basename(file)[11:],format='%Y-%m-%d_%H:%M:%S'))
 # In[544]:
 
-
-def make_plot(cffield,lfield,lfield2,ufld,vfld,params):
+def make_plot(cffield,lfield,lfield2,lfield3,ufld,vfld,params):
 # Get the latitude and longitude points
 
     print(params['time_index'])
@@ -77,8 +74,8 @@ def make_plot(cffield,lfield,lfield2,ufld,vfld,params):
     # Get the basemap object
 
     if params['zoom'] == 'full':
-        bm = Basemap(projection='lcc',width=3000*550,height=3000*375,
-        resolution='i',lat_1=-32.8,lat_2=-32.8,lat_0=-32.8,lon_0=-67.0)
+        bm = Basemap(projection='lcc',width=3000*600,height=3000*400,
+        resolution='i',lat_1=-31.5,lat_2=-31.5,lat_0=-31.5,lon_0=-65.0)
         fs=12
         params['skip']=17
 
@@ -89,8 +86,8 @@ def make_plot(cffield,lfield,lfield2,ufld,vfld,params):
         params['skip']=9
     
     if params['zoom'] == 'mendoza_zoom':
-        bm = Basemap(projection='lcc',width=1500*550,height=1500*375,
-        resolution='i',lat_1=-33.2,lat_2=-33.2,lat_0=-33.2,lon_0=-69.0)
+        bm = Basemap(projection='lcc',width=1500*600,height=1500*400,
+        resolution='i',lat_1=-33.0,lat_2=-33.0,lat_0=-33.0,lon_0=-68.0)
         fs=14 
         params['skip']=9
     
@@ -99,22 +96,25 @@ def make_plot(cffield,lfield,lfield2,ufld,vfld,params):
 
     # Add geographic outlines
     bm.drawcoastlines(linewidth=0.75)
-    bm.drawstates(linewidth=1.)
-    bm.drawcountries(linewidth=1.)
+    bm.drawstates(linewidth=0.75)
+    bm.drawcountries(linewidth=0.75)
 
     # Convert the lats and lons to x and y.  Make sure you convert the lats and lons to
     # numpy arrays via to_np, or basemap crashes with an undefined RuntimeError.
     x, y = bm(to_np(lons), to_np(lats))
-
 
     if lfield is not None:
         CS=bm.contour(x, y, to_np(lfield), 10, colors="black", levels=params['llevels'],linewidths=1.0)
         plt.clabel(CS, inline=1, fontsize=12, fmt='%d')
 
     if lfield2 is not None:
-        CS=bm.contour(x, y, to_np(lfield2), 10, colors="dimgrey", levels=params['llevels2'],linewidths=2.25)
+        CS=bm.contour(x, y, to_np(lfield2), 10, colors="dimgrey", levels=params['llevels2'],linewidths=1.5)
         #plt.clabel(CS, inline=1, fontsize=12, fmt='%d')
     
+    if lfield3 is not None:
+        CS=bm.contour(x, y, to_np(lfield), 10, colors="white", levels=params['llevels3'],linewidths=1.0)
+        plt.clabel(CS, inline=1, fontsize=12, fmt='%d')
+
     if ufld is not None:
         bm.barbs(x[::params['skip'],::params['skip']], 
                  y[::params['skip'],::params['skip']], 
@@ -124,11 +124,9 @@ def make_plot(cffield,lfield,lfield2,ufld,vfld,params):
     if not('lalpha' in params):
         params['lalpha']=None
         
-
     # Draw the contours and filled contours
     bm.contourf(x, y, to_np(cffield), 10, cmap=get_cmap(params['ccmap']), levels=params['clevels'], extend='both',
                alpha=params['lalpha'])
-
 
     parallels = np.arange(-50.,-10.,2.)
     # labels = [left,right,top,bottom]
@@ -150,7 +148,6 @@ def make_plot(cffield,lfield,lfield2,ufld,vfld,params):
         plt.text(kx,ky,key,fontsize=fs,
                         ha='center',va='center',color='b')
     #fig.figimage(im, fig.bbox.xmax-290, fig.bbox.ymin,zorder=10)
-
 
 #----
 #    def draw_screen_poly( lats, lons, bm):
@@ -233,7 +230,6 @@ def make_plot(cffield,lfield,lfield2,ufld,vfld,params):
  
         return (glon2, glat2, baz)
 
-
     def equi(bm, centerlon, centerlat, radius, *args, **kwargs):
         glon1 = centerlon
         glat1 = centerlat
@@ -251,33 +247,31 @@ def make_plot(cffield,lfield,lfield2,ufld,vfld,params):
         plt.plot(X,Y,**kwargs)
 
     radii = [200]
- 
-    # S-PolKa:
-    centerlon = -63.978435
-    centerlat = -31.715689
-    for radius in radii:
-        equi(bm, centerlon, centerlat, radius,lw=1.5,color='k')
 
+    # Cordoba:
+    centerlon = -64.2123
+    centerlat = -31.3154
+    for radius in radii:
+        equi(bm, centerlon, centerlat, radius,lw=1.0,color='k')
+ 
     # San Rafael:
     centerlon = -68.285522
     centerlat = -34.587997
     for radius in radii:
-        equi(bm, centerlon, centerlat, radius,lw=1.5,color='k')
+        equi(bm, centerlon, centerlat, radius,lw=1.0,color='k')
 
     # Mendoza:
     centerlon = -68.7987
     centerlat = -32.8278
     for radius in radii:
-        equi(bm, centerlon, centerlat, radius,lw=1.5,color='k')
+        equi(bm, centerlon, centerlat, radius,lw=1.0,color='k')
 
 #----
 
     os.system('mkdir -p '+outpath)
     plt.savefig(outpath+'/model.'+params['modname']+'.'+params['times'][0].strftime('%Y%m%d%H%M')+'.'+'{:03d}'.format(timediff_secs)+'_'+params['modfld']+'_'+params['zoom']+'.png',dpi=150,bbox_inches='tight')
 
-
 # In[512]:
-
 
 #=====================PRECIPITABLE WATER=========================
 params={'outpath':outpath,
@@ -288,6 +282,7 @@ params={'outpath':outpath,
         'ccmap':"viridis_r",
         'llevels':None,
         'llevels2':[1000],
+	'llevels3':np.arange(15,75,5),
         'time_index':tindex,
         'times':times,
         'zoom':zoom,
@@ -296,24 +291,24 @@ params={'outpath':outpath,
 cffield = getvar(files, params['cfield'], timeidx=params['time_index'])
 lfield = None
 lfield2 = getvar(files, 'ter', timeidx=params['time_index'], units='m')
+lfield3 = getvar(files, params['cfield'], timeidx=params['time_index'])
 ufld = None
 vfld = None
 
-make_plot(cffield,lfield,lfield2,ufld,vfld,params)
-
+make_plot(cffield,lfield,lfield2,lfield3,ufld,vfld,params)
 
 # In[497]:
-
 
 #=========================MIN UH=========================
 params={'outpath':outpath,
         'modname':modname,
         'modfld':'Updraft_Helicity',
         'cfield':'UP_HELI_MIN',
-        'clevels':np.arange(0,220,20),
+        'clevels':np.arange(50,275,25),
         'ccmap':"gist_stern_r",
         'llevels':None,
         'llevels2':[1000],
+	'llevels3':None,
         'time_index':tindex,
         'times':times,
         'zoom':zoom,
@@ -326,10 +321,11 @@ try:
     cffield.attrs['units']='m2 s-2'
     lfield = None
     lfield2 = getvar(files, 'ter', timeidx=params['time_index'], units='m')
+    lfield3 = None
     ufld = None
     vfld = None
 
-    make_plot(cffield,lfield,lfield2,ufld,vfld,params)
+    make_plot(cffield,lfield,lfield2,lfield3,ufld,vfld,params)
 except: print(params['cfield']," is not in the file, skipping")
 
 # In[496]:
@@ -339,10 +335,11 @@ params={'outpath':outpath,
         'modname':modname,
         'modfld':'0-1km_Storm_Relative_Helicity',
         'cfield':'SRH_MIN1',
-        'clevels':np.arange(0,750,25),
+        'clevels':np.arange(50,750,50),
         'ccmap':"cubehelix_r",
         'llevels':None,
         'llevels2':[1000],
+	'llevels3':None,
         'time_index':tindex,
         'times':times,
         'zoom':zoom,
@@ -355,11 +352,12 @@ try:
     cffield.attrs['units']='m2 s-2'
     lfield = None
     lfield2 = getvar(files, 'ter', timeidx=params['time_index'], units='m')
+    lfield3 = None
     uvmet = getvar(files, 'uvmet10', timeidx=params['time_index'], units='kt')
     ufld = uvmet.isel(u_v=0)
     vfld = uvmet.isel(u_v=1)
 
-    make_plot(cffield,lfield,lfield2,ufld,vfld,params)
+    make_plot(cffield,lfield,lfield2,lfield3,ufld,vfld,params)
 except: print(params['cfield']," is not in the file, skipping")
 
 # In[496]:
@@ -369,10 +367,11 @@ params={'outpath':outpath,
         'modname':modname,
         'modfld':'0-3km_Storm_Relative_Helicity',
         'cfield':'SRH_MIN3',
-        'clevels':np.arange(0,950,25),
+        'clevels':np.arange(50,950,50),
         'ccmap':"cubehelix_r",
         'llevels':None,
         'llevels2':[1000],
+	'llevels3':None,
         'time_index':tindex,
         'times':times,
         'zoom':zoom,
@@ -385,11 +384,12 @@ try:
     cffield.attrs['units']='m2 s-2'
     lfield = None
     lfield2 = getvar(files, 'ter', timeidx=params['time_index'], units='m')
+    lfield3 = None
     uvmet = getvar(files, 'uvmet10', timeidx=params['time_index'], units='kt')
     ufld = uvmet.isel(u_v=0)
     vfld = uvmet.isel(u_v=1)
 
-    make_plot(cffield,lfield,lfield2,ufld,vfld,params)
+    make_plot(cffield,lfield,lfield2,lfield3,ufld,vfld,params)
 except: print(params['cfield']," is not in the file, skipping")
 
 #====================TOTAL PRECIPITAITON=========================
@@ -397,10 +397,11 @@ params={'outpath':outpath,
         'modname':modname,
         'modfld':'Total_Precipitation',
         'cfield':'RAINNC',
-        'clevels':np.arange(0,165,10),
+        'clevels':np.arange(10,120,10),
         'ccmap':"ocean_r",
         'llevels':None,
         'llevels2':[1000],
+	'llevels3':None,
         'time_index':tindex,
         'times':times,
         'zoom':zoom,
@@ -412,24 +413,24 @@ cffield.attrs['description']='total precipitation'
 cffield.attrs['units']='mm'
 lfield = None
 lfield2 = getvar(files, 'ter', timeidx=params['time_index'], units='m')
+lfield3 = None
 ufld = None
 vfld = None
 
-make_plot(cffield,lfield,lfield2,ufld,vfld,params)
-
+make_plot(cffield,lfield,lfield2,lfield3,ufld,vfld,params)
 
 # In[495]:
-
 
 #====================1 HOUR PRECIPITAITON=========================
 params={'outpath':outpath,
         'modname':modname,
         'modfld':'Hourly_Precipitation',
         'cfield':'PREC_ACC_NC',
-        'clevels':np.arange(0,105,5),
+        'clevels':np.arange(5,55,5),
         'ccmap':"ocean_r",
         'llevels':None,
         'llevels2':[1000],
+	'llevels3':None,
         'time_index':tindex,
         'times':times,
         'zoom':zoom,
@@ -441,24 +442,25 @@ try:
     cffield.attrs['units']='mm'
     lfield = None
     lfield2 = getvar(files, 'ter', timeidx=params['time_index'], units='m')
+    lfield3 = None 
     ufld = None
     vfld = None
 
-    make_plot(cffield,lfield,lfield2,ufld,vfld,params)
+    make_plot(cffield,lfield,lfield2,lfield3,ufld,vfld,params)
 except: print(params['cfield']," is not in the file, skipping")
 
 # In[503]:
-
 
 #====================MAX SFC WIND=========================
 params={'outpath':outpath,
         'modname':modname,
         'modfld':'Maximum_Surface_Wind',
         'cfield':'WSPD10MAX',
-        'clevels':np.arange(0,100,2),
+        'clevels':np.arange(5,105,5),
         'ccmap':"gist_stern_r",
         'llevels':None,
         'llevels2':[1000],
+	'llevels3':None,
         'time_index':tindex,
         'times':times,
         'zoom':zoom,
@@ -471,25 +473,25 @@ try:
     cffield.attrs['units']='kt'
     lfield = None
     lfield2 = getvar(files, 'ter', timeidx=params['time_index'], units='m')
+    lfield3 = None 
     ufld = None
     vfld = None
 
-    make_plot(cffield,lfield,ufld,vfld,params)
+    make_plot(cffield,lfield,lfield2,lfield3,ufld,vfld,params)
 except: print(params['cfield']," is not in the file, skipping")
 
-
 # In[504]:
-
 
 #====================MAX UPDRAFT=========================
 params={'outpath':outpath,
         'modname':modname,
         'modfld':'Maximum_Updraft_Speed',
         'cfield':'W_UP_MAX',
-        'clevels':np.arange(0,100,2),
+        'clevels':np.arange(10,100,5),
         'ccmap':"gist_stern_r",
         'llevels':None,
         'llevels2':[1000],
+	'llevels3':None,
         'time_index':tindex,
         'times':times,
         'zoom':zoom,
@@ -502,25 +504,25 @@ try:
     cffield.attrs['units']='kt'
     lfield = None
     lfield2 = getvar(files, 'ter', timeidx=params['time_index'], units='m')
+    lfield3 = None 
     ufld = None
     vfld = None
 
-    make_plot(cffield,lfield,lfield2,ufld,vfld,params)
+    make_plot(cffield,lfield,lfield2,lfield3,ufld,vfld,params)
 except: print(params['cfield']," is not in the file, skipping")
 
-
 # In[553]:
-
 
 #=====================2 M TEMP=========================
 params={'outpath':outpath,
         'modname':modname,
         'modfld':'2m_Temperature',
         'cfield':'T2',
-        'clevels':np.arange(-15,40,2.5),
+        'clevels':np.arange(10,50,5),
         'ccmap':"plasma",
-        'llevels':np.arange(970,1040,4),
+        'llevels':None,
         'llevels2':[1000],
+	'llevels3':np.arange(10,50,5),
         'time_index':tindex,
         'times':times,
         'zoom':zoom,
@@ -530,27 +532,27 @@ cffield = getvar(files, params['cfield'], timeidx=params['time_index'],units='de
 cffield.attrs['description']='2 m temperature'
 cffield.attrs['temperature']='degC'
 cffield.values=cffield.values-273.15
-lfield = getvar(files, 'slp', timeidx=params['time_index'], units='hPa')
+#lfield = getvar(files, 'slp', timeidx=params['time_index'], units='hPa')
 lfield2 = getvar(files, 'ter', timeidx=params['time_index'], units='m')
+lfield3 = cffield
 uvmet = getvar(files, 'uvmet10', timeidx=params['time_index'], units='kt')
 ufld = uvmet.isel(u_v=0)
 vfld = uvmet.isel(u_v=1)
 
-make_plot(cffield,lfield,lfield2,ufld,vfld,params)
-
+make_plot(cffield,lfield,lfield2,lfield3,ufld,vfld,params)
 
 # In[378]:
-
 
 #=====================2 M DWPT=========================
 params={'outpath':outpath,
         'modname':modname,
         'modfld':'2m_Dewpoint_Temperature',
         'cfield':'td2',
-        'clevels':np.arange(-5,30,2.5),
+        'clevels':np.arange(0,35,5),
         'ccmap':"YlGn",
-        'llevels':np.arange(970,1040,4),
+        'llevels':None,
         'llevels2':[1000],
+	'llevels3':np.arange(0,35,5),
         'time_index':tindex,
         'times':times,
         'zoom':zoom,
@@ -560,17 +562,16 @@ cffield = getvar(files, params['cfield'], timeidx=params['time_index'])
 cffield.attrs['description']='2 m dewpoint temperature'
 cffield.attrs['temperature']='degC'
 cffield.values=cffield.values
-lfield = getvar(files, 'slp', timeidx=params['time_index'], units='hPa')
+#lfield = getvar(files, 'slp', timeidx=params['time_index'], units='hPa')
 lfield2 = getvar(files, 'ter', timeidx=params['time_index'], units='m')
+lfield3 = getvar(files, params['cfield'], timeidx=params['time_index']) 
 uvmet = getvar(files, 'uvmet10', timeidx=params['time_index'], units='kt')
 ufld = uvmet.isel(u_v=0)
 vfld = uvmet.isel(u_v=1)
 
-make_plot(cffield,lfield,lfield2,ufld,vfld,params)
-
+make_plot(cffield,lfield,lfield2,lfield3,ufld,vfld,params)
 
 # In[555]:
-
 
 #=====================SFC THETAE=========================
 params={'outpath':outpath,
@@ -579,8 +580,9 @@ params={'outpath':outpath,
         'cfield':'eth',
         'clevels':np.arange(290,390,10),
         'ccmap':"viridis_r",
-        'llevels':np.arange(970,1040,4),
+        'llevels':None,
         'llevels2':[1000],
+	'llevels3':None,
         'time_index':tindex,
         'times':times,
         'zoom':zoom,
@@ -588,17 +590,18 @@ params={'outpath':outpath,
 
 cffield = getvar(files, params['cfield'], timeidx=params['time_index'], units='K')
 cffield=cffield.isel(bottom_top=0)
-lfield = getvar(files, 'slp', timeidx=params['time_index'], units='hPa')
+#lfield = getvar(files, 'slp', timeidx=params['time_index'], units='hPa')
+#lfield = smooth2d(getvar(files, 'slp', timeidx=params['time_index'], units='hPa'),3) 
+lfield = None
 lfield2 = getvar(files, 'ter', timeidx=params['time_index'], units='m')
+lfield3 = cffield
 uvmet = getvar(files, 'uvmet10', timeidx=params['time_index'], units='kt')
 ufld = uvmet.isel(u_v=0)
 vfld = uvmet.isel(u_v=1)
 
-make_plot(cffield,lfield,lfield2,ufld,vfld,params)
-
+make_plot(cffield,lfield,lfield2,lfield3,ufld,vfld,params)
 
 # In[556]:
-
 
 #=====================10 M WIND=========================
 params={'outpath':outpath,
@@ -609,27 +612,26 @@ params={'outpath':outpath,
         'ccmap':"YlOrBr",
         'llevels':np.arange(970,1040,4),
         'llevels2':[1000],
+	'llevels3':None,
         'time_index':tindex,
         'times':times,
         'zoom':zoom,
         'skip':17}
 
-
 uvmet10 = getvar(files, 'wspd_wdir10', timeidx=params['time_index'], units="kt")
 
 cffield = uvmet10.isel(wspd_wdir=0)
 cffield.attrs['description']='10 m wind'
-lfield = getvar(files, 'slp', timeidx=params['time_index'], units='hPa')
+lfield = smooth2d(getvar(files, 'slp', timeidx=params['time_index'], units='hPa'),3)
 lfield2 = getvar(files, 'ter', timeidx=params['time_index'], units='m')
+lfield3 = None 
 uvmet = getvar(files, 'uvmet10', timeidx=params['time_index'], units='kt')
 ufld = uvmet.isel(u_v=0)
 vfld = uvmet.isel(u_v=1)
 
-make_plot(cffield,lfield,lfield2,ufld,vfld,params)
-
+make_plot(cffield,lfield,lfield2,lfield3,ufld,vfld,params)
 
 # In[415]:
-
 
 #=====================0-1 KM WIND=========================
 params={'outpath':outpath,
@@ -640,12 +642,12 @@ params={'outpath':outpath,
         'ccmap':"ocean",
         'llevels':np.arange(10,50,5),
         'llevels2':[1000],
+	'llevels3':None,
         'lalpha':0.7,
         'time_index':tindex,
         'times':times,
         'zoom':zoom,
         'skip':17}
-
 
 uvmet10 = getvar(files, 'wspd_wdir10', timeidx=params['time_index'], units="kt")
 
@@ -666,10 +668,12 @@ vfld = uvmet.isel(u_v=1)
 u2.values=u2.values-ufld.values
 v2.values=v2.values-vfld.values
 
-lfield = uvmet10.isel(wspd_wdir=0)
-lfield.values=smooth2d(np.sqrt(u2.values**2.+v2.values**2.),3)
+#lfield = uvmet10.isel(wspd_wdir=0)
+#lfield.values=smooth2d(np.sqrt(u2.values**2.+v2.values**2.),3)
 
+lfield = None 
 lfield2 = getvar(files, 'ter', timeidx=params['time_index'], units='m')
+lfield3 = None 
 
 sounding_parameters=getvar(files, 'cape_2d', timeidx=params['time_index'])
 cffield = sounding_parameters.isel(mcape_mcin_lcl_lfc=3)
@@ -680,27 +684,25 @@ uvmet = getvar(files, 'uvmet10', timeidx=params['time_index'], units='kt')
 ufld = u2
 vfld = v2
 
-make_plot(cffield,lfield,lfield2,ufld,vfld,params)
-
+make_plot(cffield,lfield,lfield2,lfield3,ufld,vfld,params)
 
 # In[414]:
-
 
 #=====================MLCAPE; 0-6 KM WIND=========================
 params={'outpath':outpath,
         'modname':modname,
         'modfld':'Mixed-layer_CAPE',
         'cfield':'mlcape_0-6kmwind',
-        'clevels':np.arange(0,4000,200),
+        'clevels':np.arange(0,4000,250),
         'ccmap':"viridis_r",
-        'llevels':np.arange(10,50,5),
+        'llevels':None,
         'llevels2':[1000],
+	'llevels3':np.arange(0,4000,250),
         'lalpha':0.7,
         'time_index':tindex,
         'times':times,
         'zoom':zoom,
         'skip':17}
-
 
 uvmet10 = getvar(files, 'wspd_wdir10', timeidx=params['time_index'], units="kt")
 
@@ -721,10 +723,15 @@ vfld = uvmet.isel(u_v=1)
 u2.values=u2.values-ufld.values
 v2.values=v2.values-vfld.values
 
-lfield = uvmet10.isel(wspd_wdir=0)
-lfield.values=smooth2d(np.sqrt(u2.values**2.+v2.values**2.),3)
+#lfield = uvmet10.isel(wspd_wdir=0)
+#lfield.values=smooth2d(np.sqrt(u2.values**2.+v2.values**2.),3)
+
+lfield = None 
 
 lfield2 = getvar(files, 'ter', timeidx=params['time_index'], units='m')
+
+lfield3 = getvar(files, 'cape_2d', timeidx=params['time_index'])
+lfield3 = sounding_parameters.isel(mcape_mcin_lcl_lfc=0)
 
 sounding_parameters=getvar(files, 'cape_2d', timeidx=params['time_index'])
 cffield = sounding_parameters.isel(mcape_mcin_lcl_lfc=0)
@@ -735,11 +742,9 @@ uvmet = getvar(files, 'uvmet10', timeidx=params['time_index'], units='kt')
 ufld = u2
 vfld = v2
 
-make_plot(cffield,lfield,lfield2,ufld,vfld,params)
-
+make_plot(cffield,lfield,lfield2,lfield3,ufld,vfld,params)
 
 # In[338]:
-
 
 #=========================500 M=========================
 params={'outpath':outpath,
@@ -750,6 +755,7 @@ params={'outpath':outpath,
         'ccmap':"YlOrBr",
         'llevels':np.arange(510,606,6),
         'llevels2':[1000],
+	'llevels3':None,
         'time_index':tindex,
         'times':times,
         'zoom':zoom,
@@ -769,14 +775,13 @@ cffield = interplevel(wspd, z, 500)
 cffield.attrs['description']='500 m AGL winds'
 lfield = None
 lfield2 = getvar(files, 'ter', timeidx=params['time_index'], units='m')
+lfield3 = None 
 ufld = interplevel(u, z, 500)
 vfld = interplevel(v, z, 500)
 
-make_plot(cffield,lfield,lfield2,ufld,vfld,params)
-
+make_plot(cffield,lfield,lfield2,lfield3,ufld,vfld,params)
 
 # In[481]:
-
 
 #=========================1 km DBZ=========================
 params={'outpath':outpath,
@@ -787,6 +792,7 @@ params={'outpath':outpath,
         'ccmap':"gist_ncar",
         'llevels':np.arange(510,606,6),
         'llevels2':[1000],
+	'llevels3':None,
         'time_index':tindex,
         'times':times,
         'zoom':zoom,
@@ -803,25 +809,25 @@ cffield.values=np.ma.masked_less(cffield.values,5.)
 cffield.attrs['description']='1 km AGL radar reflectivity'
 lfield = None
 lfield2 = getvar(files, 'ter', timeidx=params['time_index'], units='m')
+lfield3 = None 
 ufld=None
 vfld=None
 
-make_plot(cffield,lfield,lfield2,ufld,vfld,params)
-
+make_plot(cffield,lfield,lfield2,lfield3,ufld,vfld,params)
 
 # In[418]:
-
 
 #=========================500 HPA=========================
 params={'outpath':outpath,
         'modname':modname,
         'modfld':'500hPa_Vorticity',
         'cfield':'avo',
-        'clevels':[-12,-9,-6,-3,0,12,15,18,21,24],
-        'ccmap':"RdBu",
+        'clevels':[-39,-36,-33,-30,-27,-24,-21,-18,-15,-12,-9,-6,-3],
+        'ccmap':"cubehelix",
         'lalpha':0.7,
         'llevels':np.arange(510,606,6),
         'llevels2':[1000],
+	'llevels3':None,
         'time_index':tindex,
         'times':times,
         'zoom':zoom,
@@ -834,18 +840,18 @@ u = getvar(files, 'ua', timeidx=params['time_index'], units="kt")
 v = getvar(files, 'va', timeidx=params['time_index'], units="kt")
 
 cffield = interplevel(avo, p, 500)
-cffield.values=cffield.values*-1
+#cffield.values=cffield.values
+cffield.values=smooth2d(cffield,3)
 cffield.attrs['description']='500 hPa absolute vorticity'
-lfield = interplevel(z, p, 500)
+lfield = smooth2d(interplevel(z, p, 500),3)
 lfield2 = getvar(files, 'ter', timeidx=params['time_index'], units='m')
+lfield3 = None 
 ufld = interplevel(u, p, 500)
 vfld = interplevel(v, p, 500)
 
-make_plot(cffield,lfield,lfield2,ufld,vfld,params)
-
+make_plot(cffield,lfield,lfield2,lfield3,ufld,vfld,params)
 
 # In[510]:
-
 
 #=========================200 HPA=========================
 params={'outpath':outpath,
@@ -857,6 +863,7 @@ params={'outpath':outpath,
         'lalpha':0.7,
         'llevels':np.arange(1100,1300,12),
         'llevels2':[1000],
+	'llevels3':None,
         'time_index':tindex,
         'times':times,
         'zoom':zoom,
@@ -873,16 +880,15 @@ cffield = interplevel(wspd, p, 200)
 cffield.values=cffield.values
 cffield.attrs['description']='200 hPa isotachs'
 cffield.values=np.ma.masked_less(cffield.values,40.)
-lfield = interplevel(z, p, 200)
+lfield = smooth2d(interplevel(z, p, 200),3)
 lfield2 = getvar(files, 'ter', timeidx=params['time_index'], units='m')
+lfield3 = None 
 ufld = interplevel(u, p, 200)
 vfld = interplevel(v, p, 200)
 
-make_plot(cffield,lfield,lfield2,ufld,vfld,params)
-
+make_plot(cffield,lfield,lfield2,lfield3,ufld,vfld,params)
 
 # In[546]:
-
 
 #=========================850 HPA=========================
 params={'outpath':outpath,
@@ -894,6 +900,7 @@ params={'outpath':outpath,
         'lalpha':0.7,
         'llevels':np.arange(250,400,5),
         'llevels2':[1000],
+	'llevels3':None,
         'time_index':tindex,
         'times':times,
         'zoom':zoom,
@@ -930,15 +937,13 @@ cffield.attrs['description']='850 hPa moisture convergence and theta-e'
 cffield.attrs['units']='g kg-1 dy-1; K'
 lfield = smooth2d(interplevel(eth, p, 850),3)
 lfield2 = getvar(files, 'ter', timeidx=params['time_index'], units='m')
+lfield3 = None 
 ufld = ufld*1.94
 vfld = vfld*1.94
 
-make_plot(cffield,lfield,lfield2,ufld,vfld,params)
-
+make_plot(cffield,lfield,lfield2,lfield3,ufld,vfld,params)
 
 # In[547]:
-
-
 
 # In[ ]:
 
